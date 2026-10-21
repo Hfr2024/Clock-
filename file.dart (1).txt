@@ -1,0 +1,107 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'alarm_screen.dart';
+import 'timer_screen.dart';
+import 'settings_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Timer _timer;
+  DateTime _now = DateTime.now();
+  int _index = 0;
+
+  final pages = const [
+    _ClockPage(),
+    AlarmScreen(),
+    TimerScreen(),
+    SettingsScreen(),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  String get timeText {
+    final h = _now.hour.toString().padLeft(2, '0');
+    final m = _now.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _index,
+        children: [
+          _ClockView(timeText: timeText, now: _now),
+          const AlarmScreen(),
+          const TimerScreen(),
+          const SettingsScreen(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _index,
+        onTap: (v) => setState(() => _index = v),
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.access_time), label: 'الساعة'),
+          BottomNavigationBarItem(icon: Icon(Icons.alarm), label: 'المنبه'),
+          BottomNavigationBarItem(icon: Icon(Icons.timer), label: 'المؤقت'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'الإعدادات'),
+        ],
+      ),
+    );
+  }
+}
+
+class _ClockView extends StatelessWidget {
+  final String timeText;
+  final DateTime now;
+  const _ClockView({required this.timeText, required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF0B0F1A), Color(0xFF1E1B4B)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('LunaClock', style: TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              Text(timeText, style: const TextStyle(fontSize: 72, color: Colors.white, fontWeight: FontWeight.w300)),
+              const SizedBox(height: 10),
+              Text(
+                '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+                style: const TextStyle(color: Colors.white70, fontSize: 18),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
